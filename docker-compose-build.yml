@@ -1,6 +1,6 @@
 version: '3'
 services:
-  mysql:
+  sa_mysql:
     build:
       context: .
       dockerfile: mysql/Dockerfile
@@ -22,7 +22,7 @@ services:
     networks:
       - sa
 
-  redis:
+  sa_redis:
     build:
       context: .
       dockerfile: redis/Dockerfile
@@ -40,7 +40,7 @@ services:
     networks:
       - sa
 
-  backend:
+  sa_backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -60,12 +60,12 @@ services:
       REDIS_PORT: $REDIS_PORT
       REDIS_PASSWORD: $REDIS_PASSWORD
     depends_on:
-      - mysql
-      - redis
+      - sa_mysql
+      - sa_redis
     networks:
       - sa
 
-  nginx:
+  sa_nginx:
     build:
       context: .
       dockerfile: nginx/Dockerfile
@@ -76,9 +76,9 @@ services:
     restart: always
     tty: true
     depends_on:
-      - mysql
-      - redis
-      - backend
+      - sa_mysql
+      - sa_redis
+      - sa_backend
     volumes:
       - /data/SA/nginx:/var/log/nginx/
     ports:
