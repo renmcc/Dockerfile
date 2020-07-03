@@ -1,0 +1,90 @@
+version: '3'
+services:
+  mysql:
+    build:
+      context: .
+      dockerfile: mysql/Dockerfile
+      args:
+        Version: ${Version}
+    image: renmcc/sa_mysql:${Version}
+    container_name: sa_mysql
+    restart: always
+    tty: true
+    environment:
+      DB_PORT: $DB_PORT
+      DB_USER: $DB_USER
+      DB_PASSWORD: $DB_PASSWORD
+      DB_NAME: $DB_NAME
+    volumes:
+      - /data/SA/mysql:/var/lib/mysql
+    ports:
+      - 33060:3306
+    networks:
+      - sa
+
+  redis:
+    build:
+      context: .
+      dockerfile: redis/Dockerfile
+      args:
+        Version: ${Version}
+    image: renmcc/sa_redis:${Version}
+    container_name: sa_redis
+    restart: always
+    tty: true
+    environment:
+      REDIS_PORT: $REDIS_PORT
+      REDIS_PASSWORD: $REDIS_PASSWORD
+    volumes:
+      - /data/SA/redis:/var/lib/redis/
+    networks:
+      - sa
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      args:
+        Version: ${Version}
+    image: renmcc/sa_backend:${Version}
+    container_name: sa_backend
+    restart: always
+    tty: true
+    environment:
+      DB_HOST: $DB_HOST
+      DB_PORT: $DB_PORT
+      DB_USER: $DB_USER
+      DB_PASSWORD: $DB_PASSWORD
+      DB_NAME: $DB_NAME
+      REDIS_HOST: $REDIS_HOST
+      REDIS_PORT: $REDIS_PORT
+      REDIS_PASSWORD: $REDIS_PASSWORD
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - sa
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+      args:
+        Version: ${Version}
+    image: renmcc/sa_nginx:${Version}
+    container_name: sa_nginx
+    restart: always
+    tty: true
+    depends_on:
+      - mysql
+      - redis
+      - backend
+    volumes:
+      - /data/SA/nginx:/var/log/nginx/
+    ports:
+      - 80:80
+    networks:
+      - sa
+
+networks:
+  sa:
